@@ -4,31 +4,30 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-Future<Product> fetchStore() async {
+Future<Store> fetchStore() async {
   final response = await http.get(
       Uri.parse(
-          'https://hello-cycu-delivery-service.herokuapp.com/member/store/product'),
+          'https://hello-cycu-delivery-service.herokuapp.com/member/store'),
       headers: {
         "token":
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbGdvcml0aG0iOiJIUzI1NiIsImV4cCI6MTY0Nzg1MjY3OSwiZGF0YSI6IjYxYzk3NzQxMzdlMWJhNGJlY2JiZTFjNyIsImlhdCI6MTY0Nzg1MDg3OX0.WOwAjjJ6iKQEEL3tCkMJaenLDQMNWj9d040Dz5MDEy0",
-        "id": "8y3un9ka",
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhbGdvcml0aG0iOiJIUzI1NiIsImV4cCI6MTY0Nzg1MTMyNSwiZGF0YSI6IjYxYzAwYzVlOTMxOTQ3MzFiZGU4OWE2ZiIsImlhdCI6MTY0Nzg0OTUyNX0.BU34MANGpKQXYaiDUkoopL3B4XVTw6I8jQdb-AHQJc8",
         "Content-Type": "application/x-www-form-urlencoded"
       });
   if (response.statusCode == 200) {
-    return Product.fromJson(jsonDecode(response.body));
+    return Store.fromJson(jsonDecode(response.body));
   } else {
     throw Exception('Failed to load store');
   }
 }
 
-class Product {
+class Store {
   String? status;
   bool? code;
   List<Result>? result;
 
-  Product({this.status, this.code, this.result});
+  Store({this.status, this.code, this.result});
 
-  Product.fromJson(Map<String, dynamic> json) {
+  Store.fromJson(Map<String, dynamic> json) {
     status = json['status'];
     code = json['code'];
     if (json['result'] != null) {
@@ -52,25 +51,22 @@ class Product {
 
 class Result {
   String? name;
-  String? price;
-  String? describe;
-  String? type;
+  String? address;
+  String? id;
 
-  Result({this.name, this.price, this.describe, this.type});
+  Result({this.name, this.address, this.id});
 
   Result.fromJson(Map<String, dynamic> json) {
     name = json['name'];
-    price = json['price'];
-    describe = json['describe'];
-    type = json['type'];
+    address = json['address'];
+    id = json['id'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['name'] = this.name;
-    data['price'] = this.price;
-    data['describe'] = this.describe;
-    data['type'] = this.type;
+    data['address'] = this.address;
+    data['id'] = this.id;
     return data;
   }
 }
@@ -121,7 +117,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  late Future<Product> futureStore;
+  late Future<Store> futureStore;
 
   @override
   void initState() {
@@ -139,16 +135,13 @@ class _MyHomePageState extends State<MyHomePage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              FutureBuilder<Product>(
+              FutureBuilder<Store>(
                   future: futureStore,
                   builder: (context, AsyncSnapshot snapshot) {
                     if (!snapshot.hasData) {
                       return Center(child: CircularProgressIndicator());
                     } else {
                       List data = snapshot.data.result;
-                      data = data
-                          .where((product) => product.type.contains("飲料"))
-                          .toList();
                       return Center(
                           child: ListView.builder(
                         shrinkWrap: true,
@@ -157,7 +150,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           return ListTile(
                             leading: Icon(Icons.event_seat),
                             title: Text('${data[index].name}'),
-                            subtitle: Text('${data[index].price}'),
+                            subtitle: Text('${data[index].address}'),
                           );
                         },
                       ));
